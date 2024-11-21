@@ -1,11 +1,13 @@
-FROM openjdk:8u151-jdk-alpine3.7
-  
-EXPOSE 8080
- 
-ENV APP_HOME /usr/src/app
 
-COPY target/secretsanta-0.0.1-SNAPSHOT.jar $APP_HOME/app.jar
+FROM openjdk:11-jre-slim
 
-WORKDIR $APP_HOME
 
-ENTRYPOINT exec java -jar app.jar 
+WORKDIR /app
+
+
+COPY target/my-app.jar /app/my-app.jar
+
+
+EXPOSE 8090
+
+ENTRYPOINT ["java", "-jar", "my-app.jar"]
