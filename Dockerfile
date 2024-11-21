@@ -1,13 +1,12 @@
 
-FROM openjdk:11-jre-slim
+FROM httpd:2.4
 
 
-WORKDIR /app
+WORKDIR /usr/local/apache2/htdocs/
 
 
-COPY target/my-app.jar /app/my-app.jar
+COPY ./dony /usr/local/apache2/htdocs/
 
 
 EXPOSE 8090
-
-ENTRYPOINT ["java", "-jar", "my-app.jar"]
+CMD ["httpd-foreground"]
