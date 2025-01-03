@@ -1,0 +1,84 @@
+#!/bin/bash
+
+# Update and upgrade system packages
+echo "Updating and upgrading system packages..."
+sudo apt-get update && sudo apt-get upgrade -y
+
+# Install Docker if not already installed
+if ! command -v docker &> /dev/null
+then
+    echo "Docker not found. Installing Docker..."
+    sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sudo sh get-docker.sh
+    sudo usermod -aG docker $USER
+    sudo chown root:docker /var/run/docker.sock
+    sudo chmod 770 /var/run/docker.sock  # More secure permission
+    echo "Docker installed successfully!"
+else
+    echo "Docker is already installed."
+fi
+
+# Install Maven if not already installed
+if ! command -v mvn &> /dev/null
+then
+    echo "Maven not found. Installing Maven..."
+    sudo apt-get install -y maven
+    echo "Maven installed successfully!"
+else
+    echo "Maven is already installed."
+fi
+
+# Install Java (needed for Jenkins) and Jenkins
+echo "Installing Jenkins..."
+sudo apt-get install -y openjdk-11-jdk
+
+# Add Jenkins repository and key, then install Jenkins
+sudo wget -O /usr/share/keyrings/jenkins-keyring.asc \
+  https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]" \
+  https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+  /etc/apt/sources.list.d/jenkins.list > /dev/null
+# Update and install Jenkins
+sudo apt-get update
+sudo apt-get install -y jenkins
+
+# Start Jenkins and enable it at boot
+echo "Starting Jenkins..."
+sudo systemctl start jenkins
+sudo systemctl enable jenkins
+echo "Jenkins service started."
+
+# To unlock Jenkins for the first time
+echo "To unlock Jenkins, open the following file to get the unlock key:"
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+
+# Check Jenkins status
+sudo systemctl status jenkins
+
+# Run SonarQube in Docker
+echo "Starting SonarQube container..."
+sudo docker run -d \
+  --name sonarqube \
+  -p 9000:9000 \
+  sonarqube:lts
+
+echo "SonarQube is now running on http://localhost:9000"
+
+# Display running Docker containers
+sudo docker ps
+
+# Update package list and install dependencies
+sudo apt-get update && sudo apt-get install -y apt-transport-https curl
+
+# Install Trivy via the apt repository
+curl -sfL https://github.com/aquasecurity/trivy/releases/download/v0.28.0/trivy_0.28.0_Linux-64bit.deb -o trivy.deb
+sudo dpkg -i trivy.deb
+sudo rm -f trivy.deb
+
+# Verify the installation
+trivy --version
+
+# Provide message that setup is complete
+echo "Maven, Jenkins, Docker, and SonarQube are set up!"
+echo "Remember to log out and log back in for Docker permissions to take effect."
