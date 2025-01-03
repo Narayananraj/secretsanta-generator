@@ -8,7 +8,7 @@ EXPOSE 8090
 ENV CATALINA_HOME /usr/local/tomcat
 
 # Copy your WAR file into the Tomcat webapps directory
-COPY target/secretsanta-0.0.1-SNAPSHOT.war $CATALINA_HOME/webapps/
+COPY target/secretsanta-0.0.1-SNAPSHOT.jar $CATALINA_HOME/webapps/
 
 # Optionally, you can configure the container to run a script when it starts.
 # For example, you could add custom configuration files or commands here.
