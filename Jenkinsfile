@@ -1,105 +1,95 @@
 pipeline {
     agent any
-    tools{
-        jdk 'jdk17'
-        maven 'maven3'
+    
+    tools {
+        jdk 'jdk17'          // Ensure JDK 17 is installed and configured in Jenkins
+        maven 'maven3'        // Ensure Maven 3 is installed and configured in Jenkins
     }
-    environment{
-        SCANNER_HOME= tool 'sonar-scanner'
+    
+    environment {
+        SCANNER_HOME = tool 'sonar-scanner' // Ensure sonar-scanner is configured in Jenkins
     }
 
     stages {
-        stage('git-checkout') {
+        stage('Git Checkout') {
             steps {
-                git 'https://github.com/jaiswaladi246/secretsanta-generator.git'
+                // Pull code from the GitHub repository
+                git 'https://github.com/Narayananraj/secretsanta-generator.git'
             }
         }
 
-        stage('Code-Compile') {
+        stage('Code Compile') {
             steps {
-               sh "mvn clean compile"
+                // Compile the code using Maven
+                sh "mvn clean compile"
             }
         }
-        
+
         stage('Unit Tests') {
             steps {
-               sh "mvn test"
-            }
-        }
-        
-		stage('OWASP Dependency Check') {
-            steps {
-               dependencyCheck additionalArguments: ' --scan ./ ', odcInstallation: 'DC'
-                    dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+                // Run unit tests using Maven
+                sh "mvn test"
             }
         }
 
-
-        stage('Sonar Analysis') {
+        stage('OWASP Dependency Check') {
             steps {
-               withSonarQubeEnv('sonar'){
-                   sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Santa \
-                   -Dsonar.java.binaries=. \
-                   -Dsonar.projectKey=Santa '''
-               }
+                // Run OWASP Dependency Check for vulnerabilities
+                dependencyCheck additionalArguments: '--scan ./', odcInstallation: 'DC'
+                // Publish the dependency check report
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
 
-		 
-        stage('Code-Build') {
+        stage('SonarQube Analysis') {
             steps {
-               sh "mvn clean package"
+                // Run SonarQube analysis using the SonarScanner
+                withSonarQubeEnv('sonar') {
+                    sh ''' 
+                    $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Santa \
+                    -Dsonar.java.binaries=. \
+                    -Dsonar.projectKey=Santa
+                    '''
+                }
             }
         }
 
-         stage('Docker Build') {
+        stage('Code Build') {
             steps {
-               script{
-                   withDockerRegistry(credentialsId: 'docker-cred') {
-                    sh "docker build -t  santa123 . "
-                 }
-               }
+                // Package the code using Maven (build the JAR or WAR)
+                sh "mvn clean package"
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                script {
+                    // Build Docker image
+                    withDockerRegistry(credentialsId: 'docker-cred') {
+                        sh "docker build -t santa123 ."
+                    }
+                }
             }
         }
 
         stage('Docker Push') {
             steps {
-               script{
-                   withDockerRegistry(credentialsId: 'docker-cred') {
-                    sh "docker tag santa123 adijaiswal/santa123:latest"
-                    sh "docker push adijaiswal/santa123:latest"
-                 }
-               }
+                script {
+                    // Tag and push Docker image to Docker Hub
+                    withDockerRegistry(credentialsId: 'docker-cred') {
+                        sh "docker tag santa123 narayananraj/santa123:latest"
+                        sh "docker push narayananraj/santa123:latest"
+                    }
+                }
             }
         }
-        
-        	 
-        stage('Docker Image Scan') {
+         stage('Docker Run') {
             steps {
-               sh "trivy image adijaiswal/santa123:latest "
-            }
-        }}
-        
-         post {
-            always {
-                emailext (
-                    subject: "Pipeline Status: ${BUILD_NUMBER}",
-                    body: '''<html>
-                                <body>
-                                    <p>Build Status: ${BUILD_STATUS}</p>
-                                    <p>Build Number: ${BUILD_NUMBER}</p>
-                                    <p>Check the <a href="${BUILD_URL}">console output</a>.</p>
-                                </body>
-                            </html>''',
-                    to: 'jaiswaladi246@gmail.com',
-                    from: 'jenkins@example.com',
-                    replyTo: 'jenkins@example.com',
-                    mimeType: 'text/html'
-                )
+                script {
+                    // Run the Docker container to host the app
+                    sh "docker run -d -p 8081:8080 narayananraj/santa123:latest"
+                }
             }
         }
-		
-		
-
-    
+    }
 }
