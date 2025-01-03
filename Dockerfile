@@ -5,14 +5,14 @@ FROM tomcat:9-jdk8-openjdk
 EXPOSE 8090
 
 # Set the location for the WAR file to be copied to
-ENV CATALINA_HOME /usr/local/tomcat
+#ENV CATALINA_HOME /usr/local/tomcat
 
 # Copy your WAR file into the Tomcat webapps directory
-COPY target/secretsanta-0.0.1-SNAPSHOT.jar $CATALINA_HOME/webapps/
+#COPY target/secretsanta-0.0.1-SNAPSHOT.jar $CATALINA_HOME/webapps/
 
 # Optionally, you can configure the container to run a script when it starts.
 # For example, you could add custom configuration files or commands here.
 # By default, Tomcat will start when the container starts.
 
 # Default command to run Tomcat
-CMD ["catalina.sh", "run"]
+#CMD ["catalina.sh", "run"]
