@@ -2,7 +2,7 @@
 FROM tomcat:9-jdk8-openjdk
 
 # Expose Tomcat's default HTTP port
-EXPOSE 8080
+EXPOSE 8090
 
 # Set the location for the WAR file to be copied to
 ENV CATALINA_HOME /usr/local/tomcat
