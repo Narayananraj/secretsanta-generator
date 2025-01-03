@@ -1,18 +1,17 @@
-# Use official Tomcat image as base
-FROM tomcat:9-jdk8-openjdk
+# Use a more recent version of the OpenJDK image
+FROM openjdk:8-jdk-alpine
 
-# Expose Tomcat's default HTTP port
-EXPOSE 8090
+# Expose the port the app will run on
+EXPOSE 8080
 
-# Set the location for the WAR file to be copied to
-#ENV CATALINA_HOME /usr/local/tomcat
+# Set the environment variable for the app home directory
+ENV APP_HOME /usr/src/app
 
-# Copy your WAR file into the Tomcat webapps directory
-#COPY target/secretsanta-0.0.1-SNAPSHOT.jar $CATALINA_HOME/webapps/
+# Copy the compiled JAR file into the container
+COPY target/secretsanta-0.0.1-SNAPSHOT.jar $APP_HOME/app.jar
 
-# Optionally, you can configure the container to run a script when it starts.
-# For example, you could add custom configuration files or commands here.
-# By default, Tomcat will start when the container starts.
+# Set the working directory
+WORKDIR $APP_HOME
 
-# Default command to run Tomcat
-#CMD ["catalina.sh", "run"]
+# Run the app using Java, ensuring the JAR file is executed as the entrypoint
+ENTRYPOINT exec java -jar app.jar
